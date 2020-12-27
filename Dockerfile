@@ -1,10 +1,12 @@
 FROM  ubuntu:20.04
 LABEL Maintainer="Mauricio Araya"
 
-ENV PATH="/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ENV PATH="/usr/local/pulumi/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ENV LANGUAGE=en_US
 ENV LANG=en_US.UTF-8
 RUN export APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE='true'
+
+WORKDIR /tmp
 
 RUN export DEBIAN_FRONTEND='noninteractive' APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE='true' \
     && apt-get --yes update && apt-get upgrade -y \
@@ -14,21 +16,16 @@ RUN export DEBIAN_FRONTEND='noninteractive' APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE
         git \
         gnupg2 \
         openssh-client \
-        software-properties-common \
-        unzip
-
-RUN add-apt-repository ppa:deadsnakes/ppa \
-    && apt-get --yes update
-
-RUN export DEBIAN_FRONTEND='noninteractive' APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE='true' \
-    && apt-get install --yes python3.9
+        python3.8 \
+        python3-pip \
+        unzip \
+    && pip3 install --upgrade pip
 
 RUN curl -sSL https://golang.org/dl/go1.15.6.linux-amd64.tar.gz -o /tmp/go-linux-amd64.tar.gz \
-    && tar -C /usr/local -xvzf /tmp/go-linux-amd64.tar.gz \
-    && rm -f /tmp/go-linux-amd64.tar.gz
+    && tar -C /usr/local -xvzf go-linux-amd64.tar.gz
 
-RUN curl -sSL https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -o /tmp/packages-microsoft-prod.deb \
-    && dpkg -i /tmp/packages-microsoft-prod.deb \
+RUN curl -sSL https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -o packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
     && apt-get update \
     && apt-get install --yes dotnet-sdk-5.0 \
     && apt-get install --yes aspnetcore-runtime-5.0
@@ -41,9 +38,11 @@ RUN export DEBIAN_FRONTEND='noninteractive' APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE
     && npm install -g gulp-cli
 
 RUN export DEBIAN_FRONTEND='noninteractive' \
-    && curl -fsSL https://get.pulumi.com | sh
+    && curl -fsSL https://get.pulumi.com \
+     | sed -e 's,${HOME}/.pulumi,/usr/local/pulumi,g' \
+           -e 's,$HOME/.pulumi,/usr/local/pulumi,g' \
+     | sh
 
-WORKDIR /tmp
 RUN curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
     && unzip awscliv2.zip \
     && ./aws/install
