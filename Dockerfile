@@ -25,10 +25,10 @@ RUN curl -sSL https://golang.org/dl/go1.15.6.linux-amd64.tar.gz -o /tmp/go-linux
     && tar -C /usr/local -xvzf go-linux-amd64.tar.gz
 
 RUN curl -sSL https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -o packages-microsoft-prod.deb \
-    && dpkg -i packages-microsoft-prod.deb \
+    && export DEBIAN_FRONTEND='noninteractive' dpkg -i packages-microsoft-prod.deb \
     && apt-get update \
-    && apt-get install --yes dotnet-sdk-5.0 \
-    && apt-get install --yes aspnetcore-runtime-5.0
+    && export DEBIAN_FRONTEND='noninteractive' apt-get install --yes dotnet-sdk-5.0 \
+    && export DEBIAN_FRONTEND='noninteractive' apt-get install --yes aspnetcore-runtime-5.0
 
 RUN curl -sSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
 COPY files/nodesource.list /etc/apt/sources.list.d/nodesource.list
